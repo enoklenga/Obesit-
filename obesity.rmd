@@ -1,0 +1,205 @@
+---
+title: "progetto di Data Science"
+author: "enoklenga"
+output:
+  ioslides_presentation:
+    widescreen: true
+    css: "style.css"
+  
+---
+
+
+## Introduzione alle domande
+
+ La mia presentazione consite nell'analizazione dei livelli di obesità nelle personne dei paesi del Messico, del perù e della colombia. 
+
+1-Fattori di Rischio:\
+-   Quali sono i principali fattori di rischio associati all'obesità ?\
+-   Come differiscono questi fattori tra diverse categorie di persone ?
+
+2-Stili di Vita:\
+-   Quali abitudini di vita che  sono associate a un maggior rischio di obesità?\
+-   Come possono variare queste abitudini tra gruppi demografici diversi?
+  
+## Presentazione del  Dataset
+Ho estratto il dataset su kaggle : Obesity or CVD risk (Classify/Regressor/Cluster)
+che contiene i dati sulla stima dei livelli di obesità nelle personne.\
+L'ho scelto dopo aver visualizzato tanti altri dataset perchè contiene variabile importantanti per questo analisi come:\
+
+ . Genere ,Età ,Categorie di peso , Storia famigliale con Sovrappeso\
+ . Gli atributi legati alle abitudine alimentari\
+ . Gli atributi relativa alla condizione fisica \
+  
+   
+
+```{r echo=FALSE, message=FALSE}
+source("obesity.R")
+```
+
+
+
+Il raporto tra l'altezza e il peso  è principali fattori di rischio associati all'obesità?\
+ si! Come differisce questo fattori tra diverse categorie di persone ?
+  
+## Rapporto tra il peso e l'altezza in funzione dell'indice di massa corporea
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+
+Obesity$Indice_massa_Corporea <- Obesity$Peso / Obesity$Altezza^2
+ggplot(data = Obesity, mapping = aes(x = Peso, y =Altezza,color = Genere)) +
+  geom_point(mapping = aes(size= Indice_massa_Corporea)) + 
+  geom_smooth(se = FALSE)+
+  xlab("Peso") +
+  ylab("Altezza") +
+  ggtitle(" rapporto tra l'alteza e il Peso") +
+  scale_color_manual(values = c("orange1","grey50")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+## Rapporto tra l'indice di massa corporea e la storia familiare con sovrappeso
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+
+ggplot(Obesity, aes(x =Indice_massa_Corporea, fill = Storia_Famigliale_Con_SovraPeso)) +
+  geom_density(alpha = 0.7) +
+  xlab("Indice di Massa Corporea") +
+  ylab("Densità") +
+  ggtitle(" Rapporto tra l'indice di massa corporea e la storia familiare con sovrappeso") +
+  scale_fill_manual(values = c("grey50","brown1"))+
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+```
+
+
+## Percentuale delle personne con storia famigliale con sovrappeso per categorie di peso 
+```{r, fig.align='center', fig.width=7, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+ggplot(data = Obesity_proporzione_0, aes(x = "", y = Percentualestoriafamigliale, fill = Gruppo_Peso)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    theme_void() +
+    scale_fill_manual(values = c("grey","green" ,"orange", "lightblue","brown1","purple"))+
+    labs(fill = "Categorie di peso") +
+    geom_text(aes(label = paste0(round(Percentualestoriafamigliale, 1), "%")), position = position_stack(vjust = 0.5))
+  
+```
+c'è un rischio elevato da chi ha una storia famigliale con sovrappeso di avere l'obesità  
+
+
+
+
+le abitudine alimentari sono associate a un maggior rischio di obesità? 
+si! Come possono variare queste abitudini tra gruppi demografici diversi?
+
+## Percentuale di consumo frequente di alimenti ad alto contenuto calorico per categorie di peso
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+
+ggplot(data = Obesity_proporzione_2, aes(x = "", y = PercentualeConsumo, fill = Gruppo_Peso)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  scale_fill_manual(values = c("green","darkgoldenrod2" ,"lightblue", "brown1","grey" ))+
+  labs(fill = "Categorie di peso") +
+  geom_text(aes(label = paste0(round(PercentualeConsumo, 1), "%")), position = position_stack(vjust = 0.5))
+```
+
+
+## Consumo frequente di alimenti ad alto contenuto calorico per genere
+```{r, fig.align='center', fig.width=7, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+Obesity%>%
+  filter(Consumo_Alimenti_Alto_Calori=="Si" & Indice_massa_Corporea > 20   )%>%
+  group_by(Gruppo_Peso, Genere) %>%
+  ggplot(aes(x = Gruppo_Peso, y = Indice_massa_Corporea, fill = Genere)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("Consumo frequente di alimenti ad alto contenuto calorico ") +
+  ylab("Percentuale di Consumo") +
+  ggtitle(" Rapporto tra il Consumo frequente di alimenti ad alto contenuto calorico e ell'obesità ") +
+  scale_fill_manual(values = c("orange","lightblue")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+il consumo di alimenti ad alto contenuto calorico non sembra essere diversso per le categorie di genere però si presenta come un fattore di obesità 
+
+## Rapporto tra fumare e l'obesità
+```{r, fig.align='center', fig.width=9, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+ Obesity %>%
+  filter(Fumatore=="Si") %>%
+  group_by(Gruppo_Peso, Genere) %>%
+ggplot(aes(x=Indice_massa_Corporea, y=Gruppo_Peso, fill= Genere))+
+  geom_joy(scale=2)+
+  scale_y_discrete(expand = c(0.01, 0))+
+  scale_x_continuous(expand = c(0.01, 0))+
+  theme_joy()+ 
+  scale_fill_manual(values = c("orange","grey"))+
+  labs(title = "Andamento del percentuale di fumatore per categorie di peso",
+       x = "Indice di massa corperea",
+       y = "Categorie di Peso")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+atributi relativa alla condizione fisica sono associate a un maggior rischio di obesità?\
+si! Come possono variare queste abitudini tra gruppi demografici diversi?
+  
+
+## Frequenza di attività fisica media per le categorie di peso 
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+Obesity%>%
+  group_by(Gruppo_Peso) %>%
+  summarise(Frequenza_media = mean(Frequenza_Attività_Fisica)) %>%
+  ggplot(aes(x = Gruppo_Peso, y = Frequenza_media , fill = Gruppo_Peso)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("Categorie di peso ") +
+  ylab("Frequenza media") +
+  ggtitle("Rapporto tra Frequenza di attività media fisica e le categorie di peso") +
+  scale_fill_manual(values = c("grey", "green","orange", "blue", "brown1", "purple")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+la frequenza di attiità è basso da quelli con obesità grave mentre l'intervallo di età che ha più rischio di obesità con frequenza di attività media < 0.7  è quello dei giovani < 40
+
+
+## Rapporto tra la frequenza di attività fisica media per intervalli di età
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+Obesity%>%
+  group_by(Gruppo_Età, Gruppo_Peso) %>%
+  summarise(Frequenza_media = mean(Frequenza_Attività_Fisica)) %>%
+  filter(Frequenza_media<0.7)%>%
+  ggplot(aes(x = Gruppo_Età, y = Frequenza_media, fill = Gruppo_Peso)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("intervalli di Eta ") +
+  ylab("frequenza dell'attività Fisica") +
+  ggtitle("Rapporto tra la frequenza dell'attività fisica media e l'età ") +
+  scale_fill_manual(values = c("grey", "darkgreen",  "orange", "beige", "brown1" ,"lightblue")) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Mezzo di trasporto utilizzato dalle personne  con obesità grave
+```{r, fig.align='center', fig.width=8, fig.height=5, echo=FALSE, message=FALSE}
+source("obesity.R")
+
+ggplot(data = Obesity_proporzione_7, aes(x = "", y = Percentuale, fill = Trasporto_Utilizzato)) +
+    geom_bar(stat = "identity", width = 1) +
+    scale_y_continuous(trans = "log10", breaks = c(0.1, 1, 10, 100), labels = scales::percent) +
+    coord_polar("y", start = 0) +
+    theme_void() +
+    scale_fill_manual(values = c("lightblue", "brown1")) +
+    labs(fill = "Mezzo di Trasporto") +
+    geom_text(aes(label = paste0(round(Percentuale, 1), "%")), position = position_stack(vjust = 0.5))
+
+```
+ 
+ 
+## conclusione
+Insomma si è osservato che certe abitudine alimentari (come consumo frequente di alimenti ad alto calori) e  una bassa attività fisica sono fattore potenziale di obesità sebene non differiscono molto per le categorie genere il rischio di obesità è più elevato dalle feminne anche da quelli che hanno una storia famigliale con sovrappeso. 
+
+Questo progetto mi ha aiutato molto aumentando la mia conoscenza della scienza dei data, soprattuto analizzando questi dati ho imparato di più sui rischi e sui fattori dell'obesità. 
